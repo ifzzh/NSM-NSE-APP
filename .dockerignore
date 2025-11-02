@@ -1,0 +1,44 @@
+# Git files
+.git/
+.gitignore
+
+# Go build artifacts
+*.test
+*.out
+vendor/
+bin/
+build/
+dist/
+
+# Logs
+*.log
+*.log.*
+
+# Environment variables
+.env
+.env.*
+*.key
+*.crt
+*.pem
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test reports
+junit/
+coverage.out
+coverage.html
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
