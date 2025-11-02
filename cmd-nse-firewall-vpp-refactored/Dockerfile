@@ -17,7 +17,7 @@ COPY go.mod go.sum ./
 COPY ./internal/imports ./internal/imports
 RUN go build ./internal/imports
 COPY . .
-RUN go build -o /bin/app .
+RUN go build -o /bin/app ./cmd
 
 FROM build as test
 CMD go test -test.v ./...
