@@ -1,0 +1,21 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nse-gateway-vpp
+spec:
+  template:
+    spec:
+      containers:
+        - name: nse
+          env:
+            - name: NSM_IP_POLICY_CONFIG_PATH
+              value: /etc/gateway/policy.yaml
+          volumeMounts:
+            - mountPath: /etc/gateway/policy.yaml
+              subPath: policy.yaml
+              name: gateway-config-volume
+      volumes:
+        - name: gateway-config-volume
+          configMap:
+            name: gateway-config-file

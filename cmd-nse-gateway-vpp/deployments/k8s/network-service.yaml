@@ -1,0 +1,23 @@
+---
+apiVersion: networkservicemesh.io/v1
+kind: NetworkService
+metadata:
+  name: gateway-service
+spec:
+  # 数据平面类型：ETHERNET（与firewall-vpp保持一致）
+  payload: ETHERNET
+
+  # 路由匹配规则
+  # Gateway作为网络服务入口，客户端通过gateway-service连接
+  matches:
+    # 规则1：直接访问Gateway的客户端
+    - routes:
+        - destination_selector:
+            app: nse-gateway-vpp
+
+    # 规则2：可选 - 如果Gateway需要链接到其他NSE（例如后端服务）
+    # - source_selector:
+    #     app: nse-gateway-vpp
+    #   routes:
+    #     - destination_selector:
+    #         app: backend-service

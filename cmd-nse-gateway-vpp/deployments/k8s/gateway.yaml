@@ -1,0 +1,91 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nse-gateway-vpp
+  labels:
+    app: nse-gateway-vpp
+spec:
+  selector:
+    matchLabels:
+      app: nse-gateway-vpp
+  template:
+    metadata:
+      labels:
+        app: nse-gateway-vpp
+        "spiffe.io/spiffe-id": "true"
+    spec:
+      containers:
+        - name: nse
+          image: ifzzh520/nsm-nse-gateway-vpp:v1.2.0
+          imagePullPolicy: IfNotPresent
+          env:
+            # SPIFFE配置
+            - name: SPIFFE_ENDPOINT_SOCKET
+              value: unix:///run/spire/sockets/agent.sock
+
+            # Pod信息
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            # NSM基本配置
+            - name: NSM_NAME
+              value: "gateway-server"
+            - name: NSM_SERVICE_NAME
+              value: "gateway-service"
+            - name: NSM_LOG_LEVEL
+              value: TRACE
+            - name: NSM_CONNECT_TO
+              value: unix:///var/lib/networkservicemesh/nsm.io.sock
+
+            # Gateway特定配置 - IP策略文件路径
+            - name: NSM_IP_POLICY_CONFIG_PATH
+              value: /etc/gateway/policy.yaml
+
+            # 可选：内联JSON配置（优先级高于文件）
+            # - name: NSM_IP_POLICY
+            #   value: '{"defaultAction":"deny","allowList":["10.0.0.0/8"],"denyList":["10.10.10.0/24"]}'
+
+          volumeMounts:
+            # SPIRE agent socket
+            - name: spire-agent-socket
+              mountPath: /run/spire/sockets
+              readOnly: true
+
+            # NSM socket
+            - name: nsm-socket
+              mountPath: /var/lib/networkservicemesh
+              readOnly: true
+
+            # Gateway策略配置文件
+            - name: gateway-policy
+              mountPath: /etc/gateway
+              readOnly: true
+
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+
+      volumes:
+        # SPIRE agent socket（用于mTLS认证）
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/sockets
+            type: Directory
+
+        # NSM socket（用于连接NSM注册表）
+        - name: nsm-socket
+          hostPath:
+            path: /var/lib/networkservicemesh
+            type: DirectoryOrCreate
+
+        # Gateway IP策略配置
+        - name: gateway-policy
+          configMap:
+            name: gateway-policy-config

@@ -1,0 +1,37 @@
+# IP网关策略配置示例 - 默认允许策略
+#
+# 使用场景：
+# - 大部分流量应该被允许
+# - 只有少数已知的恶意IP需要被阻止
+#
+# 应用此配置：
+#   export NSM_IP_POLICY_CONFIG_PATH=/path/to/policy-allow-default.yaml
+#   或在Kubernetes中通过ConfigMap挂载
+
+# 允许列表（白名单）
+# 显式允许的IP地址或CIDR网段
+allowList:
+  - "192.168.1.0/24"      # 办公网络
+  - "10.0.0.100"          # 特定的可信服务器
+
+# 禁止列表（黑名单）
+# 显式禁止的IP地址或CIDR网段
+# 注意：黑名单优先级高于白名单
+denyList:
+  - "10.0.0.5"            # 已知的恶意IP
+  - "172.16.99.0/24"      # 不受信任的网段
+
+# 默认动作
+# 当IP不在任何列表中时的处理方式
+# 可选值："allow" 或 "deny"
+defaultAction: "allow"
+
+# 说明：
+# 1. 如果源IP在denyList中 → 立即阻止（优先级最高）
+# 2. 如果源IP在allowList中 → 允许放行
+# 3. 如果都不匹配 → 应用defaultAction（此处为允许）
+#
+# 示例匹配结果：
+#   - 192.168.1.100  → 允许（在allowList中）
+#   - 10.0.0.5       → 阻止（在denyList中）
+#   - 8.8.8.8        → 允许（默认允许策略）

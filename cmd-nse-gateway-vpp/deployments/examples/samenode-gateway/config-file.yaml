@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: gateway-config-file
+data:
+    policy.yaml: |
+        # Gateway IP策略配置
+        # 默认策略：allow（允许所有流量通过）
+        # 用于性能测试，不限制流量
+
+        defaultAction: allow
+
+        # 允许列表（白名单）
+        allowList:
+          - 0.0.0.0/0  # 允许所有IP
+
+        # 拒绝列表（黑名单）- 空列表
+        denyList: []

@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 所有资源部署到指定命名空间（与firewall-refactored保持一致）
+namespace: ns-nse-composition
+
+# K8s资源清单
+resources:
+  - configmap.yaml          # Gateway IP策略配置
+  - network-service.yaml    # NetworkService定义（gateway-service）
+  - gateway.yaml            # Gateway NSE Deployment
+
+# 可选：通用标签（应用于所有资源）
+commonLabels:
+  project: nsm-nse-app
+  component: gateway-nse
+  version: v1.0.0
+
+# 可选：通用注解
+commonAnnotations:
+  description: "IP Gateway NSE for Network Service Mesh"
+  documentation: "https://github.com/networkservicemesh/nsm-nse-app/tree/main/cmd-nse-gateway-vpp"
