@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nse
-          image: ifzzh520/nsm-nse-gateway-vpp:v1.2.0
+          image: ifzzh520/nsm-nse-gateway-vpp:v1.3.0
           imagePullPolicy: IfNotPresent
           env:
             # SPIFFE配置

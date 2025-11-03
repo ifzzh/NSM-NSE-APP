@@ -2,16 +2,24 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"net/url"
 	"os"
+	"time"
 
+	"github.com/edwarnicke/grpcfd"
 	"github.com/networkservicemesh/nsm-nse-app/cmd-nse-gateway-vpp/internal/gateway"
 	"github.com/networkservicemesh/nsm-nse-app/cmd-nse-gateway-vpp/internal/lifecycle"
 	"github.com/networkservicemesh/nsm-nse-app/cmd-nse-gateway-vpp/internal/registryclient"
 	"github.com/networkservicemesh/nsm-nse-app/cmd-nse-gateway-vpp/internal/servermanager"
 	"github.com/networkservicemesh/nsm-nse-app/cmd-nse-gateway-vpp/internal/vppmanager"
+	"github.com/networkservicemesh/sdk/pkg/tools/spiffejwt"
+	"github.com/networkservicemesh/sdk/pkg/tools/token"
 	log "github.com/sirupsen/logrus"
+	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
+	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
@@ -118,22 +126,46 @@ func main() {
 	// Phase 5: SPIFFE证书源创建 (T051)
 	// ========================================
 
-	// TODO: Phase 4后期集成真实SPIFFE
-	// spiffeEndpointSocket := os.Getenv("SPIFFE_ENDPOINT_SOCKET")
-	// if spiffeEndpointSocket == "" {
-	//     spiffeEndpointSocket = "unix:///run/spire/sockets/agent.sock"
-	// }
-	//
-	// source, err := workloadapi.NewX509Source(ctx, workloadapi.WithClientOptions(
-	//     workloadapi.WithAddr(spiffeEndpointSocket),
-	// ))
-	// if err != nil {
-	//     log.Fatalf("创建SPIFFE X509源失败: %v", err)
-	// }
-	// defer source.Close()
+	log.Info("正在从SPIRE Agent获取X509 SVID...")
 
-	var source interface{} = nil // Mock SPIFFE源
-	log.Info("SPIFFE证书源创建成功（当前为模拟模式）")
+	// 从环境变量获取SPIFFE endpoint socket，默认为SPIRE agent的标准位置
+	spiffeEndpointSocket := os.Getenv("SPIFFE_ENDPOINT_SOCKET")
+	if spiffeEndpointSocket == "" {
+		spiffeEndpointSocket = "unix:///run/spire/sockets/agent.sock"
+	}
+
+	source, err := workloadapi.NewX509Source(
+		ctx,
+		workloadapi.WithClientOptions(workloadapi.WithAddr(spiffeEndpointSocket)),
+	)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"spiffe_socket": spiffeEndpointSocket,
+			"error":         err.Error(),
+		}).Fatal("创建SPIFFE X509源失败")
+	}
+	defer source.Close()
+
+	// 获取并记录SVID信息
+	svid, err := source.GetX509SVID()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Fatal("获取X509 SVID失败")
+	}
+
+	log.WithFields(log.Fields{
+		"svid": svid.ID.String(),
+	}).Info("SPIFFE证书源创建成功")
+
+	// 创建TLS配置（用于gRPC通信）
+	tlsClientConfig := tlsconfig.MTLSClientConfig(source, source, tlsconfig.AuthorizeAny())
+	tlsClientConfig.MinVersion = tls.VersionTLS12
+
+	tlsServerConfig := tlsconfig.MTLSServerConfig(source, source, tlsconfig.AuthorizeAny())
+	tlsServerConfig.MinVersion = tls.VersionTLS12
+
+	log.Info("TLS配置创建成功")
 
 	// ========================================
 	// Phase 6: gRPC服务器创建并启动 (T052)
@@ -151,8 +183,15 @@ func main() {
 
 	serverMgr := servermanager.NewManager(nseName, listenOn)
 
-	// 创建并启动gRPC服务器（返回Result包含Server、ListenURL、TmpDir、ErrCh）
-	srvResult, err := serverMgr.NewServer(ctx)
+	// 创建并启动gRPC服务器（使用TLS配置）
+	srvResult, err := serverMgr.NewServer(
+		ctx,
+		grpc.Creds(
+			grpcfd.TransportCredentials(
+				credentials.NewTLS(tlsServerConfig),
+			),
+		),
+	)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
@@ -212,16 +251,44 @@ func main() {
 		}).Fatal("解析NSM_CONNECT_TO URL失败")
 	}
 
+	log.WithFields(log.Fields{
+		"connect_to":   connectTo,
+		"registry_url": connectToURL.String(),
+	}).Info("创建NSM注册表客户端")
+
+	// 配置gRPC客户端选项（使用真实TLS credentials和token）
+	maxTokenLifetime := 10 * time.Minute
+	clientOptions := []grpc.DialOption{
+		grpc.WithDefaultCallOptions(
+			grpc.WaitForReady(true),
+			grpc.PerRPCCredentials(token.NewPerRPCCredentials(spiffejwt.TokenGeneratorFunc(source, maxTokenLifetime))),
+		),
+		grpc.WithTransportCredentials(
+			grpcfd.TransportCredentials(
+				credentials.NewTLS(tlsClientConfig),
+			),
+		),
+		grpcfd.WithChainStreamInterceptor(),
+		grpcfd.WithChainUnaryInterceptor(),
+	}
+
 	registryClient, err := registryclient.NewClient(ctx, registryclient.Options{
 		ConnectTo:   connectToURL,
 		Policies:    []string{}, // Gateway暂不使用OPA策略
-		DialOptions: []grpc.DialOption{grpc.WithInsecure()}, // TODO: 生产环境需要使用TLS
+		DialOptions: clientOptions,
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
 		}).Fatal("创建NSM注册表客户端失败")
 	}
+
+	log.WithFields(log.Fields{
+		"nse_name":     nseName,
+		"registry_url": connectToURL.String(),
+		"services":     []string{"ip-gateway"},
+		"url":          srvResult.ListenURL.String(),
+	}).Info("向NSM注册表注册NSE")
 
 	// 使用服务器返回的真实ListenURL进行注册
 	if err := registryClient.Register(ctx, registryclient.RegisterSpec{
