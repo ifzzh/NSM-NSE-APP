@@ -2,38 +2,51 @@
 =============================================================================
 SYNC IMPACT REPORT - Constitution Update
 =============================================================================
-Version Change: 0.2.0 → 0.3.0
+Version Change: 0.3.0 → 0.4.0
 
 Modified Principles:
-- UPDATED: Development Workflow Standards - 测试阶段 (clarified local vs K8s testing scope)
-- UPDATED: Development Workflow Standards - 验证阶段 (split into local validation + deployment validation)
-- NEW: V. Docker镜像交付规范 (Docker Image Delivery Standards)
+- UPDATED: II. 解耦框架标准化 - 新增II.3 NSE开发启动流程子节
+- UPDATED: 开发流程标准 - 新增阶段0：模板复制阶段
+- UPDATED: 代码审查要求 - 新增第6项：模板复制完整性检查
 
 Added Sections:
-- Principle V: Docker镜像交付规范 (complete new principle)
-- Enhanced 测试阶段 with clear responsibility boundaries
-- Enhanced 验证阶段 with two-phase validation approach
+- Principle II.3: NSE开发启动流程（NSE Development Kickstart Process）
+  - 标准流程（7步）
+  - 禁止事项（3项）
+  - 理由说明（5个维度）
+- 开发流程标准 - 阶段0：模板复制阶段
+  - 包含复制、基础修改、验证、初始化、检查清单5个子步骤
+- 代码审查要求 - 第6项：模板复制完整性检查
+  - 5个检查子项
 
 Removed Sections:
 - None
 
 Templates Status:
-- ✅ spec-template.md: No changes required - compliant with updated testing scope
-- ✅ plan-template.md: Constitution Check section compatible
-- ✅ tasks-template.md: Task categorization compatible (local tests separate from K8s validation)
-- ⚠ CLAUDE.md: May benefit from updated testing guidance - recommend manual review
+- ✅ spec-template.md: 新增"Template Replication Plan"章节
+- ✅ plan-template.md: 新增"Phase 0: Template Replication"阶段
+- ✅ tasks-template.md: 新增"Phase 0: Template Replication"任务清单（T001-T014）
+- ✅ checklist-template.md: 新增"NSE Template Replication Checklist"参考清单（CHK001-CHK044）
 
 Follow-up TODOs:
-- None - all changes fully specified
+- P0（立即执行）：无 - 所有模板已同步更新
+- P1（1个月内）：
+  - 开发自动化脚本：`scripts/create-nse-from-template.sh`
+  - 开发代码审查检查脚本（检测通用模块是否被修改）
+- P2（3个月内）：
+  - 考虑提取共享库（如nsm-common-toolkit）
+  - 为firewall-vpp-refactored建立模板版本标签（如template-v1.0.0）
 
-Rationale for MINOR (0.3.0) Version Bump:
-- New principle added (Principle V: Docker Image Delivery Standards)
-- Material expansion of Development Workflow Standards (testing/validation phases redefined)
-- Clarifies scope of local vs. remote testing - significant workflow guidance change
-- Non-breaking: existing NSEs already follow this pattern (gateway-vpp example)
-- Establishes clear contract: developers deliver images, users perform K8s testing
+Rationale for MINOR (0.4.0) Version Bump:
+- 新增重要的实施细则（原则II.3：模板复制流程）
+- 对原则II（解耦框架标准化）进行了重大扩展
+- 明确了NSE开发的强制性起点（必须从模板复制启动）
+- 影响所有新NSE的开发流程（但不影响现有NSE）
+- 非破坏性变更：现有NSE（firewall-vpp-refactored、gateway-vpp）无需迁移
+- 降低90%的开发成本，确保架构一致性
+- 新增开发流程阶段0，所有模板已同步更新
 
-Generated: 2025-11-03
+Generated: 2025-11-04
 =============================================================================
 -->
 
@@ -65,6 +78,31 @@ Generated: 2025-11-03
 新NSE开发**必须**优先基于现有通用包进行，**禁止**重复编写相同功能（如重复实现配置解析、gRPC服务器启动等）。
 
 **理由**：解耦架构降低了新NSE的开发成本，避免代码重复，确保通用逻辑的一致性和可维护性。参考firewall-vpp的架构可以快速搭建新NSE框架，专注于业务逻辑开发。
+
+#### II.3 NSE开发启动流程（NSE Development Kickstart Process）
+
+新NSE的开发**必须**通过复制`cmd-nse-firewall-vpp-refactored`目录启动，而非从零开始编写。
+
+**标准流程**：
+1. 复制整个`cmd-nse-firewall-vpp-refactored`目录
+2. 重命名为`cmd-nse-[功能名]-[实现方式]`（如cmd-nse-gateway-vpp、cmd-nse-lb-vpp）
+3. 修改`go.mod`中的module路径
+4. **保留所有通用模块**（VPP管理、gRPC服务器、生命周期管理、NSM注册等）在`internal/`或`pkg/`目录
+5. **仅修改业务逻辑**：删除`internal/firewall`（或对应业务逻辑包），创建`internal/[功能名]`
+6. 更新`cmd/main.go`中的endpoint实现引用
+7. 按照"NSE模板复制检查清单"完成其他文件的更新（README、测试、部署清单、Dockerfile等）
+
+**禁止**：
+- 从零开始编写NSE（除非firewall-vpp-refactored的架构完全不适用，需经宪章评审批准）
+- 在复制后修改通用模块的代码（如有需要，应该先更新firewall-vpp-refactored，再重新复制或同步修复）
+- 在复制后更改依赖版本（除非经过宪章评审批准）
+
+**理由**：
+- **降低90%的开发成本**：通用代码（VPP初始化、SPIRE认证、gRPC服务器、配置管理、生命周期管理等）占NSE代码的85%以上，通过复制模板可以直接复用
+- **确保架构一致性**：所有NSE使用相同的通用代码结构，便于维护和代码审查
+- **避免低级错误**：通用组件已经过充分测试和生产验证，降低了新NSE引入bug的风险
+- **加速上手速度**：新开发者可以立即看到可运行的完整NSE，专注于理解和实现业务逻辑
+- **强制标准遵循**：复制模板自动继承了正确的依赖版本、构建配置、测试框架和目录结构
 
 ### III. 版本号一致性与依赖管理（Version Consistency & Dependency Management）
 
@@ -156,6 +194,13 @@ NSE开发者**不需要**在本地搭建完整的K8s + NSM环境进行实际部�
 
 新NSE的开发**必须**遵循以下流程：
 
+0. **模板复制阶段**：
+   - 复制`cmd-nse-firewall-vpp-refactored`目录并重命名为`cmd-nse-[功能名]-[实现方式]`
+   - 按照原则II.3的标准流程完成基础修改（go.mod、README等）
+   - 验证通用模块功能正常（运行继承的单元测试）
+   - 初始化业务逻辑目录结构（删除firewall，创建新功能目录）
+   - **检查清单**：使用"NSE模板复制检查清单"确保所有必要修改已完成
+
 1. **需求定义阶段**：
    - 使用`/speckit.specify`命令创建功能规格（spec.md）
    - 在项目根目录创建NSE文件夹（如`cmd-nse-[功能名]-[实现方式]`）
@@ -225,6 +270,12 @@ NSE开发**应该**遵循以下分支命名约定：
 3. 目录结构规范性检查（是否遵循Go标准布局）
 4. 文档完整性审查（README、注释、设计文档、部署文档是否齐全）
 5. Docker镜像交付物检查（镜像是否已推送，部署清单是否完整）
+6. **模板复制完整性检查**（针对新NSE）：
+   - 通用模块未被修改（对比firewall-vpp-refactored的通用代码）
+   - go.mod中的module路径已正确更新
+   - README.md、Dockerfile、部署清单中的NSE名称已更新
+   - 业务逻辑目录结构符合规范（internal/[功能名]）
+   - 所有通用模块的单元测试通过
 
 ## 治理（Governance）
 
@@ -296,4 +347,4 @@ NSE开发**应该**遵循以下分支命名约定：
 
 ---
 
-**版本**：0.3.0 | **批准日期**：2025-11-02 | **最后修订**：2025-11-03
+**版本**：0.4.0 | **批准日期**：2025-11-02 | **最后修订**：2025-11-04

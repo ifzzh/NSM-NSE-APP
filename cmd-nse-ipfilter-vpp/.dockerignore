@@ -1,0 +1,40 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+specs/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+bin/
+build/
+dist/
+
+# Logs
+*.log
+log/
+
+# Environment
+.env
+.env.*
+
+# Testing
+tests/
+coverage/
+*.test
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+tmp/
