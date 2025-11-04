@@ -228,12 +228,12 @@
 
 ### 最终交付
 
-- [ ] T074 构建并推送Docker镜像到Docker Hub（ifzzh/cmd-nse-ipfilter-vpp:v1.0.0）
+- [X] T074 构建并推送Docker镜像到Docker Hub（ifzzh520/cmd-nse-ipfilter-vpp:v1.0.0）✅ 镜像大小235MB
 - [ ] T075 创建GitHub Release（v1.0.0）并附上部署文档
 - [ ] T076 更新项目根目录README.md，添加IP Filter NSE的链接
 
 **Deliverables**:
-- Docker镜像：ifzzh/cmd-nse-ipfilter-vpp:v1.0.0
+- Docker镜像：ifzzh520/cmd-nse-ipfilter-vpp:v1.0.0 ✅
 - 完整的Kubernetes部署清单
 - 完善的文档（README、故障排查、配置示例）
 - 验证报告和测试报告
