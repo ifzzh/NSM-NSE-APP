@@ -1,6 +1,10 @@
 package ipfilter
 
-import "net"
+import (
+	"fmt"
+	"net"
+	"time"
+)
 
 // FilterMode 过滤模式枚举
 type FilterMode int
@@ -55,4 +59,32 @@ type FilterConfig struct {
 
 	// LogLevel 日志级别（继承自NSM配置，此处可选覆盖）
 	LogLevel string
+}
+
+// AccessDecision 访问控制决策结果
+type AccessDecision struct {
+	// ClientIP 客户端源IP地址
+	ClientIP net.IP
+
+	// Allowed 是否允许访问
+	Allowed bool
+
+	// Reason 决策理由（匹配的规则描述或默认策略）
+	Reason string
+
+	// Timestamp 决策时间
+	Timestamp time.Time
+
+	// LatencyNs 决策延迟（纳秒）
+	LatencyNs int64
+}
+
+// String 返回决策的字符串表示（用于日志）
+func (d *AccessDecision) String() string {
+	action := "ALLOWED"
+	if !d.Allowed {
+		action = "DENIED"
+	}
+	return fmt.Sprintf("[%s] IP=%s, Reason=%s, Latency=%dus",
+		action, d.ClientIP, d.Reason, d.LatencyNs/1000)
 }

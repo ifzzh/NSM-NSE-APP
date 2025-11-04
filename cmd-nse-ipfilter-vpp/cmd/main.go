@@ -163,12 +163,44 @@ func main() {
 	}
 	lifecycle.MonitorErrorChannel(ctx, cancel, vppErrCh)
 
+	// 加载IP Filter配置
+	var filterConfig *ipfilter.FilterConfig
+	var logger *logrus.Logger
+	if cfg.IPFilterWhitelist != "" || cfg.IPFilterBlacklist != "" {
+		logger = logrus.New()
+		logger.SetLevel(logrus.InfoLevel)
+
+		configLoader := ipfilter.NewConfigLoader(logger)
+
+		// 设置环境变量供ConfigLoader读取
+		if cfg.IPFilterMode != "" {
+			os.Setenv("IPFILTER_MODE", cfg.IPFilterMode)
+		}
+		if cfg.IPFilterWhitelist != "" {
+			os.Setenv("IPFILTER_WHITELIST", cfg.IPFilterWhitelist)
+		}
+		if cfg.IPFilterBlacklist != "" {
+			os.Setenv("IPFILTER_BLACKLIST", cfg.IPFilterBlacklist)
+		}
+
+		filterConfig, err = configLoader.LoadFromEnv(ctx)
+		if err != nil {
+			logrus.Fatalf("error loading IP filter config: %+v", err)
+		}
+
+		log.FromContext(ctx).Infof("IP Filter Config: mode=%s, whitelist=%d rules, blacklist=%d rules",
+			filterConfig.Mode, len(filterConfig.Whitelist), len(filterConfig.Blacklist))
+	} else {
+		log.FromContext(ctx).Warnf("IP Filter is disabled: no whitelist or blacklist configured")
+	}
+
 	// 创建ipfilter端点
 	ipfilterEndpoint := ipfilter.NewEndpoint(ctx, ipfilter.Options{
 		Name:             cfg.Name,
 		ConnectTo:        &cfg.ConnectTo,
 		Labels:           cfg.Labels,
-		// TODO: 添加IP过滤配置（当前暂时使用空配置）
+		FilterConfig:     filterConfig,
+		Logger:           logger,
 		MaxTokenLifetime: cfg.MaxTokenLifetime,
 		VPPConn:          vppConn,
 		Source:           source,

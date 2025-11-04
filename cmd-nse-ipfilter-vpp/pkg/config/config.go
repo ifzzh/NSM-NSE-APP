@@ -36,7 +36,7 @@ import (
 
 // Config 包含从环境变量加载的配置参数
 type Config struct {
-	Name                   string              `default:"firewall-server" desc:"Name of Firewall Server"`
+	Name                   string              `default:"ipfilter-server" desc:"Name of IP Filter Server"`
 	ListenOn               string              `default:"listen.on.sock" desc:"listen on socket" split_words:"true"`
 	ConnectTo              url.URL             `default:"unix:///var/lib/networkservicemesh/nsm.io.sock" desc:"url to connect to" split_words:"true"`
 	MaxTokenLifetime       time.Duration       `default:"10m" desc:"maximum lifetime of tokens" split_words:"true"`
@@ -45,6 +45,10 @@ type Config struct {
 	Labels                 map[string]string   `default:"" desc:"Endpoint labels"`
 	ACLConfigPath          string              `default:"/etc/firewall/config.yaml" desc:"Path to ACL config file" split_words:"true"`
 	ACLConfig              []acl_types.ACLRule `default:"" desc:"configured acl rules" split_words:"true"`
+	// IP Filter相关配置
+	IPFilterMode           string              `default:"whitelist" desc:"IP Filter mode: whitelist, blacklist, or both" split_words:"true"`
+	IPFilterWhitelist      string              `default:"" desc:"Comma-separated list of whitelisted IPs/CIDRs, or path to YAML file" split_words:"true"`
+	IPFilterBlacklist      string              `default:"" desc:"Comma-separated list of blacklisted IPs/CIDRs, or path to YAML file" split_words:"true"`
 	LogLevel               string              `default:"INFO" desc:"Log level" split_words:"true"`
 	OpenTelemetryEndpoint  string              `default:"otel-collector.observability.svc.cluster.local:4317" desc:"OpenTelemetry Collector Endpoint" split_words:"true"`
 	MetricsExportInterval  time.Duration       `default:"10s" desc:"interval between mertics exports" split_words:"true"`

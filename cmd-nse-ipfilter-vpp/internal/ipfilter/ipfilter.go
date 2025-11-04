@@ -50,6 +50,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/networkservicemesh/nsm-nse-app/cmd-nse-ipfilter-vpp/pkg/vpp"
+	"github.com/sirupsen/logrus"
 )
 
 // Endpoint IP Filter网络服务端点
@@ -69,10 +70,11 @@ type Options struct {
 	// Labels 端点标签
 	Labels map[string]string
 
-	// TODO: 添加IP过滤配置字段
-	// Whitelist []string  // IP白名单
-	// Blacklist []string  // IP黑名单
-	// FilterMode string   // 过滤模式：whitelist/blacklist/both
+	// FilterConfig IP过滤配置（白名单/黑名单规则）
+	FilterConfig *FilterConfig
+
+	// Logger 日志记录器
+	Logger *logrus.Logger
 
 	// MaxTokenLifetime token最大生命周期
 	MaxTokenLifetime time.Duration
@@ -116,8 +118,19 @@ func NewEndpoint(ctx context.Context, opts Options) *Endpoint {
 	// 创建token生成器
 	tokenGenerator := spiffejwt.TokenGeneratorFunc(opts.Source, opts.MaxTokenLifetime)
 
+	// 创建IP过滤规则匹配器
+	var ipFilterMiddleware networkservice.NetworkServiceServer
+	if opts.FilterConfig != nil {
+		matcher := NewRuleMatcher(opts.FilterConfig)
+		ipFilterMiddleware = NewServer(matcher, opts.Logger)
+		opts.Logger.Infof("IP Filter enabled: mode=%s, whitelist=%d rules, blacklist=%d rules",
+			opts.FilterConfig.Mode, len(opts.FilterConfig.Whitelist), len(opts.FilterConfig.Blacklist))
+	} else {
+		// 如果没有配置，使用空实现（允许所有）
+		opts.Logger.Warn("IP Filter disabled: no configuration provided")
+	}
+
 	// 构建端点链
-	// TODO: 在此处添加IP过滤逻辑（作为NSM链的一部分）
 	ep.Endpoint = endpoint.NewServer(
 		ctx,
 		tokenGenerator,
@@ -134,8 +147,8 @@ func NewEndpoint(ctx context.Context, opts Options) *Endpoint {
 			clienturl.NewServer(opts.ConnectTo),
 			// VPP xconnect
 			xconnect.NewServer(opts.VPPConn),
-			// TODO: 在此处添加IP过滤中间件
-			// ipfilterMiddleware.NewServer(opts.Whitelist, opts.Blacklist, opts.FilterMode),
+			// ⭐ IP过滤中间件（在xconnect之后，mechanisms之前）
+			ipFilterMiddleware,
 			// Memif机制支持
 			mechanisms.NewServer(map[string]networkservice.NetworkServiceServer{
 				memif.MECHANISM: chain.NewNetworkServiceServer(
