@@ -79,27 +79,27 @@
 
 ### NSM中间件实现
 
-- [ ] T026 [US1] 定义IPFilterServer结构体（实现networkservice.NetworkServiceServer接口）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
-- [ ] T027 [US1] 实现NewServer构造函数 in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
-- [ ] T028 [US1] 实现Server.extractSourceIP方法（从NSM Request提取客户端IP）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
-- [ ] T029 [US1] 实现Server.Request方法（调用RuleMatcher.IsAllowed并返回允许/拒绝）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
-- [ ] T030 [US1] 实现Server.Close方法（直接传递给下游服务）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
-- [ ] T031 [US1] 定义AccessDecision结构体（日志记录格式）in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
-- [ ] T032 [US1] 实现AccessDecision.String方法（日志格式化）in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
+- [X] T026 [US1] 定义IPFilterServer结构体（实现networkservice.NetworkServiceServer接口）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
+- [X] T027 [US1] 实现NewServer构造函数 in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
+- [X] T028 [US1] 实现Server.extractSourceIP方法（从NSM Request提取客户端IP）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
+- [X] T029 [US1] 实现Server.Request方法（调用RuleMatcher.IsAllowed并返回允许/拒绝）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
+- [X] T030 [US1] 实现Server.Close方法（直接传递给下游服务）in cmd-nse-ipfilter-vpp/internal/ipfilter/server.go
+- [X] T031 [US1] 定义AccessDecision结构体（日志记录格式）in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
+- [X] T032 [US1] 实现AccessDecision.String方法（日志格式化）in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
 
 ### Endpoint集成
 
-- [ ] T033 [US1] 更新IPFilterEndpoint.NewEndpoint函数，集成IPFilterServer中间件到NSM链（在xconnect之后）in cmd-nse-ipfilter-vpp/internal/ipfilter/ipfilter.go
-- [ ] T034 [US1] 更新cmd/main.go，传递白名单配置到IPFilterEndpoint in cmd-nse-ipfilter-vpp/cmd/main.go
+- [X] T033 [US1] 更新IPFilterEndpoint.NewEndpoint函数，集成IPFilterServer中间件到NSM链（在xconnect之后）in cmd-nse-ipfilter-vpp/internal/ipfilter/ipfilter.go
+- [X] T034 [US1] 更新cmd/main.go，传递白名单配置到IPFilterEndpoint in cmd-nse-ipfilter-vpp/cmd/main.go
 
 ### 测试和验证
 
-- [ ] T035 [P] [US1] 单元测试：白名单内IP允许 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T036 [P] [US1] 单元测试：白名单外IP拒绝 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T037 [P] [US1] 单元测试：空白名单拒绝所有 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T038 [P] [US1] 单元测试：CIDR网段白名单 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T039 [P] [US1] 单元测试：缺少IP地址返回InvalidArgument错误 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T040 [US1] 编译验证：go build ./cmd/... 成功
+- [X] T035 [P] [US1] 单元测试：白名单内IP允许 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T036 [P] [US1] 单元测试：白名单外IP拒绝 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T037 [P] [US1] 单元测试：空白名单拒绝所有 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T038 [P] [US1] 单元测试：CIDR网段白名单 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T039 [P] [US1] 单元测试：缺少IP地址返回InvalidArgument错误 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T040 [US1] 编译验证：go build ./cmd/... 成功
 - [ ] T041 [US1] 本地测试：使用测试配置启动NSE，模拟白名单场景验证
 
 **Acceptance Criteria** (User Story 1):
@@ -127,21 +127,21 @@
 
 ### 黑名单功能增强
 
-- [ ] T042 [P] [US2] 更新RuleMatcher.IsAllowed方法，支持FilterModeBlacklist模式 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T043 [P] [US2] 更新ConfigLoader，支持IPFILTER_BLACKLIST环境变量和YAML字段 in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
-- [ ] T044 [US2] 更新cmd/main.go，传递黑名单配置到IPFilterEndpoint in cmd-nse-ipfilter-vpp/cmd/main.go
+- [X] T042 [P] [US2] 更新RuleMatcher.IsAllowed方法，支持FilterModeBlacklist模式 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T043 [P] [US2] 更新ConfigLoader，支持IPFILTER_BLACKLIST环境变量和YAML字段 in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
+- [X] T044 [US2] 更新cmd/main.go，传递黑名单配置到IPFilterEndpoint in cmd-nse-ipfilter-vpp/cmd/main.go
 
 ### 混合模式（白名单+黑名单）
 
-- [ ] T045 [US2] 实现FilterModeBoth模式（黑名单优先逻辑）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T046 [US2] 更新README.md环境变量文档：IPFILTER_MODE、IPFILTER_BLACKLIST in cmd-nse-ipfilter-vpp/README.md
+- [X] T045 [US2] 实现FilterModeBoth模式（黑名单优先逻辑）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T046 [US2] 更新README.md环境变量文档：IPFILTER_MODE、IPFILTER_BLACKLIST in cmd-nse-ipfilter-vpp/README.md
 
 ### 测试和验证
 
-- [ ] T047 [P] [US2] 单元测试：黑名单内IP拒绝 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T048 [P] [US2] 单元测试：黑名单外IP允许 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T049 [P] [US2] 单元测试：空黑名单允许所有 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
-- [ ] T050 [P] [US2] 单元测试：混合模式下黑名单优先（IP同时在两个列表）in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T047 [P] [US2] 单元测试：黑名单内IP拒绝 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T048 [P] [US2] 单元测试：黑名单外IP允许 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T049 [P] [US2] 单元测试：空黑名单允许所有 in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
+- [X] T050 [P] [US2] 单元测试：混合模式下黑名单优先（IP同时在两个列表）in cmd-nse-ipfilter-vpp/internal/ipfilter/server_test.go
 - [ ] T051 [US2] 本地测试：使用黑名单配置启动NSE，验证黑名单和混合模式场景
 
 **Acceptance Criteria** (User Story 2):

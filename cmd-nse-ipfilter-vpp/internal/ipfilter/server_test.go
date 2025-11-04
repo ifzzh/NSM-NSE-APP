@@ -346,3 +346,233 @@ func TestServerMissingIPAddress(t *testing.T) {
 			"invalid IP format should return InvalidArgument")
 	})
 }
+
+// TestServerBlacklistDenied (T047) - 黑名单内IP拒绝
+func TestServerBlacklistDenied(t *testing.T) {
+	// 准备：创建黑名单配置（拒绝192.168.1.100）
+	_, ipnet1, _ := net.ParseCIDR("192.168.1.100/32")
+	config := &ipfilter.FilterConfig{
+		Mode:      ipfilter.FilterModeBlacklist,
+		Whitelist: []ipfilter.IPFilterRule{},
+		Blacklist: []ipfilter.IPFilterRule{
+			{Network: ipnet1, Description: "test-blacklist"},
+		},
+	}
+
+	matcher := ipfilter.NewRuleMatcher(config)
+	logger := logrus.New()
+	logger.SetLevel(logrus.ErrorLevel)
+
+	server := ipfilter.NewServer(matcher, logger)
+
+	// 创建NSM请求（源IP为192.168.1.100，在黑名单中）
+	request := &networkservice.NetworkServiceRequest{
+		Connection: &networkservice.Connection{
+			Context: &networkservice.ConnectionContext{
+				IpContext: &networkservice.IPContext{
+					SrcIpAddrs: []string{"192.168.1.100/32"},
+				},
+			},
+		},
+	}
+
+	// 执行：调用Request方法
+	ctx := context.Background()
+	_, err := server.Request(ctx, request)
+
+	// 验证：应该被拒绝
+	require.Error(t, err, "request should be denied")
+	st, ok := status.FromError(err)
+	require.True(t, ok, "error should be a gRPC status")
+	require.Equal(t, codes.PermissionDenied, st.Code(),
+		"IP in blacklist should be denied")
+	require.Contains(t, st.Message(), "not allowed",
+		"error message should contain 'not allowed'")
+}
+
+// TestServerBlacklistAllowed (T048) - 黑名单外IP允许
+func TestServerBlacklistAllowed(t *testing.T) {
+	// 准备：创建黑名单配置（仅拒绝192.168.1.100）
+	_, ipnet1, _ := net.ParseCIDR("192.168.1.100/32")
+	config := &ipfilter.FilterConfig{
+		Mode:      ipfilter.FilterModeBlacklist,
+		Whitelist: []ipfilter.IPFilterRule{},
+		Blacklist: []ipfilter.IPFilterRule{
+			{Network: ipnet1, Description: "test-blacklist"},
+		},
+	}
+
+	matcher := ipfilter.NewRuleMatcher(config)
+	logger := logrus.New()
+	logger.SetLevel(logrus.ErrorLevel)
+
+	server := ipfilter.NewServer(matcher, logger)
+
+	// 创建NSM请求（源IP为192.168.1.200，不在黑名单中）
+	request := &networkservice.NetworkServiceRequest{
+		Connection: &networkservice.Connection{
+			Context: &networkservice.ConnectionContext{
+				IpContext: &networkservice.IPContext{
+					SrcIpAddrs: []string{"192.168.1.200/32"},
+				},
+			},
+		},
+	}
+
+	// 执行：调用Request方法
+	ctx := context.Background()
+	_, err := server.Request(ctx, request)
+
+	// 验证：不应该被PermissionDenied拦截
+	if err != nil {
+		st, ok := status.FromError(err)
+		require.True(t, ok, "error should be a gRPC status")
+		require.NotEqual(t, codes.PermissionDenied, st.Code(),
+			"IP not in blacklist should not be denied")
+	}
+}
+
+// TestServerEmptyBlacklistAllowsAll (T049) - 空黑名单允许所有
+func TestServerEmptyBlacklistAllowsAll(t *testing.T) {
+	// 准备：创建空黑名单配置
+	config := &ipfilter.FilterConfig{
+		Mode:      ipfilter.FilterModeBlacklist,
+		Whitelist: []ipfilter.IPFilterRule{},
+		Blacklist: []ipfilter.IPFilterRule{},
+	}
+
+	matcher := ipfilter.NewRuleMatcher(config)
+	logger := logrus.New()
+	logger.SetLevel(logrus.ErrorLevel)
+
+	server := ipfilter.NewServer(matcher, logger)
+
+	// 测试多个不同的IP地址
+	testIPs := []string{
+		"192.168.1.100/32",
+		"10.0.0.1/32",
+		"172.16.0.1/32",
+	}
+
+	for _, testIP := range testIPs {
+		t.Run(testIP, func(t *testing.T) {
+			request := &networkservice.NetworkServiceRequest{
+				Connection: &networkservice.Connection{
+					Context: &networkservice.ConnectionContext{
+						IpContext: &networkservice.IPContext{
+							SrcIpAddrs: []string{testIP},
+						},
+					},
+				},
+			}
+
+			// 执行：调用Request方法
+			ctx := context.Background()
+			_, err := server.Request(ctx, request)
+
+			// 验证：不应该被PermissionDenied拦截（其他错误可以接受，因为没有下游服务）
+			if err != nil {
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error should be a gRPC status")
+				require.NotEqual(t, codes.PermissionDenied, st.Code(),
+					"empty blacklist should allow all IPs")
+			}
+		})
+	}
+}
+
+// TestServerMixedModeBlacklistPriority (T050) - 混合模式下黑名单优先
+func TestServerMixedModeBlacklistPriority(t *testing.T) {
+	// 准备：创建混合模式配置
+	// 192.168.1.100 同时在白名单和黑名单中
+	_, whitenet, _ := net.ParseCIDR("192.168.1.0/24")  // 白名单：整个网段
+	_, blackip, _ := net.ParseCIDR("192.168.1.100/32") // 黑名单：特定IP
+
+	config := &ipfilter.FilterConfig{
+		Mode: ipfilter.FilterModeBoth,
+		Whitelist: []ipfilter.IPFilterRule{
+			{Network: whitenet, Description: "allow-subnet"},
+		},
+		Blacklist: []ipfilter.IPFilterRule{
+			{Network: blackip, Description: "deny-specific-ip"},
+		},
+	}
+
+	matcher := ipfilter.NewRuleMatcher(config)
+	logger := logrus.New()
+	logger.SetLevel(logrus.ErrorLevel)
+
+	server := ipfilter.NewServer(matcher, logger)
+
+	// 测试场景1：IP同时在白名单和黑名单中（应该被拒绝，黑名单优先）
+	t.Run("blacklist_priority", func(t *testing.T) {
+		request := &networkservice.NetworkServiceRequest{
+			Connection: &networkservice.Connection{
+				Context: &networkservice.ConnectionContext{
+					IpContext: &networkservice.IPContext{
+						SrcIpAddrs: []string{"192.168.1.100/32"},
+					},
+				},
+			},
+		}
+
+		ctx := context.Background()
+		_, err := server.Request(ctx, request)
+
+		// 验证：应该被拒绝（黑名单优先）
+		require.Error(t, err, "IP in both lists should be denied (blacklist priority)")
+		st, ok := status.FromError(err)
+		require.True(t, ok, "error should be a gRPC status")
+		require.Equal(t, codes.PermissionDenied, st.Code(),
+			"blacklist should take priority")
+		require.Contains(t, st.Message(), "not allowed",
+			"error message should indicate denial")
+	})
+
+	// 测试场景2：IP仅在白名单中（应该允许）
+	t.Run("whitelist_only", func(t *testing.T) {
+		request := &networkservice.NetworkServiceRequest{
+			Connection: &networkservice.Connection{
+				Context: &networkservice.ConnectionContext{
+					IpContext: &networkservice.IPContext{
+						SrcIpAddrs: []string{"192.168.1.200/32"},
+					},
+				},
+			},
+		}
+
+		ctx := context.Background()
+		_, err := server.Request(ctx, request)
+
+		// 验证：不应该被PermissionDenied拦截
+		if err != nil {
+			st, ok := status.FromError(err)
+			require.True(t, ok, "error should be a gRPC status")
+			require.NotEqual(t, codes.PermissionDenied, st.Code(),
+				"IP in whitelist only should be allowed")
+		}
+	})
+
+	// 测试场景3：IP不在任何列表中（应该被拒绝，因为白名单非空）
+	t.Run("neither_list", func(t *testing.T) {
+		request := &networkservice.NetworkServiceRequest{
+			Connection: &networkservice.Connection{
+				Context: &networkservice.ConnectionContext{
+					IpContext: &networkservice.IPContext{
+						SrcIpAddrs: []string{"10.0.0.1/32"},
+					},
+				},
+			},
+		}
+
+		ctx := context.Background()
+		_, err := server.Request(ctx, request)
+
+		// 验证：应该被拒绝（不在白名单中）
+		require.Error(t, err, "IP in neither list should be denied")
+		st, ok := status.FromError(err)
+		require.True(t, ok, "error should be a gRPC status")
+		require.Equal(t, codes.PermissionDenied, st.Code(),
+			"IP not in whitelist should be denied")
+	})
+}
