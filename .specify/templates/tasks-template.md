@@ -44,13 +44,44 @@ description: "Task list template for feature implementation"
   ============================================================================
 -->
 
+## Phase 0: Template Replication *(NSE features only)*
+
+<!--
+  ACTION REQUIRED: For NSE development only. Delete this phase if not applicable.
+  This phase implements Constitution Principle II.3 (NSE Development Kickstart Process).
+  Tasks must be executed sequentially as they have dependencies.
+-->
+
+**Purpose**: 完成NSE模板复制和基础初始化，确保通用组件正常工作
+
+**⚠️ CRITICAL**: 此阶段必须在任何其他开发工作之前完成
+
+- [ ] T001 复制cmd-nse-firewall-vpp-refactored目录并重命名为cmd-nse-[功能名]-[实现方式]
+- [ ] T002 更新go.mod中的module路径并执行go mod tidy
+- [ ] T003 更新README.md（项目描述、功能说明、环境变量）
+- [ ] T004 更新Dockerfile（镜像名称、构建参数）
+- [ ] T005 更新deployments/*.yaml（镜像名称、环境变量）
+- [ ] T006 搜索并替换所有"firewall"相关字符串（保留说明性注释）
+- [ ] T007 运行通用模块单元测试验证功能正常
+- [ ] T008 检查依赖版本与firewall-vpp-refactored一致性
+- [ ] T009 删除internal/firewall目录
+- [ ] T010 创建internal/[功能名]目录并编写基本接口定义
+- [ ] T011 更新cmd/main.go中的endpoint实现引用
+- [ ] T012 执行模板复制检查清单验证
+- [ ] T013 生成模板复制完成报告
+- [ ] T014 Commit初始化代码（message: "初始化[功能名] NSE from firewall-vpp-refactored @ [hash]"）
+
+**Checkpoint**: 模板复制完成，通用组件功能正常，可以开始业务逻辑开发
+
+---
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T015 Create project structure per implementation plan
+- [ ] T016 Initialize [language] project with [framework] dependencies
+- [ ] T017 [P] Configure linting and formatting tools
 
 ---
 
@@ -62,12 +93,12 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T018 Setup database schema and migrations framework
+- [ ] T019 [P] Implement authentication/authorization framework
+- [ ] T020 [P] Setup API routing and middleware structure
+- [ ] T021 Create base models/entities that all stories depend on
+- [ ] T022 Configure error handling and logging infrastructure
+- [ ] T023 Setup environment configuration management
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -83,17 +114,17 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T024 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T025 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T026 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T027 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T028 [US1] Implement [Service] in src/services/[service].py (depends on T026, T027)
+- [ ] T029 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T030 [US1] Add validation and error handling
+- [ ] T031 [US1] Add logging for user story 1 operations
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -107,15 +138,15 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T032 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T033 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T034 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T035 [US2] Implement [Service] in src/services/[service].py
+- [ ] T036 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T037 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -129,14 +160,14 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T038 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T039 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T040 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T041 [US3] Implement [Service] in src/services/[service].py
+- [ ] T042 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -150,12 +181,12 @@ Examples of foundational tasks (adjust based on your project):
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] TXXX [P] Documentation updates in docs/
-- [ ] TXXX Code cleanup and refactoring
-- [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
-- [ ] TXXX Security hardening
-- [ ] TXXX Run quickstart.md validation
+- [ ] T043 [P] Documentation updates in docs/
+- [ ] T044 Code cleanup and refactoring
+- [ ] T045 Performance optimization across all stories
+- [ ] T046 [P] Additional unit tests (if requested) in tests/unit/
+- [ ] T047 Security hardening
+- [ ] T048 Run quickstart.md validation
 
 ---
 
@@ -163,7 +194,8 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Template Replication (Phase 0)**: No dependencies - MUST be completed first (NSE features only)
+- **Setup (Phase 1)**: Depends on Phase 0 completion (if applicable) - can start immediately for non-NSE projects
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
 - **User Stories (Phase 3+)**: All depend on Foundational phase completion
   - User stories can then proceed in parallel (if staffed)

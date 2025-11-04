@@ -102,3 +102,140 @@ directories captured above]
 |-----------|------------|-------------------------------------|
 | [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
 | [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+
+## Phase 0: Template Replication *(NSE features only)*
+
+<!--
+  ACTION REQUIRED: For NSE development only. Delete this phase if not applicable.
+  This phase implements Constitution Principle II.3 (NSE Development Kickstart Process).
+-->
+
+**Goal**: 完成NSE模板复制和基础初始化，确保通用组件正常工作
+
+**Prerequisites**: 已阅读并理解项目宪章原则II.3
+
+### 任务0.1：复制firewall-vpp-refactored模板
+
+**Actions**:
+1. 在项目根目录执行：`cp -r cmd-nse-firewall-vpp-refactored cmd-nse-[功能名]-[实现方式]`
+2. 验证所有文件已复制（包括隐藏文件）
+3. 记录模板源的commit hash（用于未来同步修复）
+
+**Deliverables**:
+- [ ] 新NSE目录已创建：`cmd-nse-[功能名]-[实现方式]/`
+- [ ] 目录内容与firewall-vpp-refactored一致
+
+### 任务0.2：基础文件重命名和更新
+
+**Actions**:
+1. 更新`go.mod`中的module路径：
+   ```go
+   module github.com/ifzzh/nsm-nse-app/cmd-nse-[功能名]-[实现方式]
+   ```
+2. 更新`README.md`：
+   - 项目标题和描述
+   - 功能说明
+   - 环境变量文档
+3. 更新`Dockerfile`（如有特定需求）：
+   - 镜像名称
+   - 构建参数
+4. 更新`deployments/*.yaml`：
+   - 镜像名称（如`ifzzh/cmd-nse-[功能名]-[实现方式]:latest`）
+   - 容器名称
+   - 环境变量（如NSE_NAME）
+5. 搜索并替换所有"firewall"相关字符串（保留注释说明"从firewall-vpp复制"）
+
+**Deliverables**:
+- [ ] go.mod已更新且`go mod tidy`执行成功
+- [ ] README.md已更新为新NSE的描述
+- [ ] Dockerfile镜像名称已更新
+- [ ] 部署清单已更新且语法正确
+- [ ] 无残留的"firewall"字符串（除说明性注释）
+
+### 任务0.3：通用模块验证
+
+**Actions**:
+1. 运行通用模块的单元测试：
+   ```bash
+   cd cmd-nse-[功能名]-[实现方式]
+   go test ./internal/servermanager/... -v
+   go test ./internal/vppmanager/... -v
+   go test ./internal/lifecycle/... -v
+   go test ./internal/registryclient/... -v
+   ```
+2. 验证VPP连接测试通过（如有mock测试）
+3. 验证gRPC服务器测试通过
+4. 检查依赖版本与firewall-vpp-refactored一致：
+   ```bash
+   diff go.mod ../cmd-nse-firewall-vpp-refactored/go.mod
+   ```
+
+**Deliverables**:
+- [ ] 所有通用模块单元测试通过（或已标记skip并说明原因）
+- [ ] 依赖版本与firewall-vpp-refactored完全一致
+- [ ] 无编译错误或警告
+
+### 任务0.4：业务逻辑目录初始化
+
+**Actions**:
+1. 删除`internal/firewall`目录（或对应的业务逻辑包）
+2. 创建`internal/[功能名]`目录
+3. 编写业务逻辑的基本结构（接口定义）：
+   ```go
+   package [功能名]
+
+   // [功能名]Endpoint 定义NSE的核心业务逻辑接口
+   // 从firewall-vpp复制并修改
+   type [功能名]Endpoint interface {
+       // Request 处理NSM连接请求
+       Request(ctx context.Context, request *networkservice.NetworkServiceRequest) (*networkservice.Connection, error)
+       // Close 处理NSM连接关闭
+       Close(ctx context.Context, conn *networkservice.Connection) (*empty.Empty, error)
+   }
+   ```
+4. 更新`cmd/main.go`中的endpoint实现引用：
+   - 删除firewall endpoint的import
+   - 添加新功能endpoint的import
+   - 修改endpoint初始化代码
+
+**Deliverables**:
+- [ ] `internal/firewall`已删除
+- [ ] `internal/[功能名]`已创建并有基本接口定义
+- [ ] `cmd/main.go`已更新且可编译（即使endpoint为空实现）
+
+### 任务0.5：模板复制检查清单验证
+
+**Actions**:
+1. 使用"NSE模板复制检查清单"逐项检查
+2. 记录任何偏离标准流程的地方及理由
+3. 生成模板复制完成报告：
+   ```markdown
+   # NSE模板复制完成报告
+
+   **NSE名称**：cmd-nse-[功能名]-[实现方式]
+   **模板源**：cmd-nse-firewall-vpp-refactored @ commit [hash]
+   **完成时间**：[DATE]
+
+   ## 检查清单状态
+   - [x] 所有文件已复制
+   - [x] go.mod已更新
+   - [x] README已更新
+   - [x] Dockerfile已更新
+   - [x] 部署清单已更新
+   - [x] 通用模块测试通过
+   - [x] 业务逻辑目录已初始化
+
+   ## 偏离说明
+   [如有偏离，说明原因和影响]
+   ```
+
+**Deliverables**:
+- [ ] 模板复制检查清单100%完成
+- [ ] 模板复制完成报告已生成
+- [ ] 已commit初始化代码（commit message: "初始化[功能名] NSE from firewall-vpp-refactored @ [hash]"）
+
+**Checkpoint**: 模板复制完成，通用组件功能正常，可以开始业务逻辑开发
+
+---
+
+## Phase 1: Research

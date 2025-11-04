@@ -41,29 +41,29 @@
 
 ### 配置加载模块
 
-- [ ] T006 [P] 定义FilterMode枚举类型 in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
-- [ ] T007 [P] 定义IPFilterRule结构体 in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
-- [ ] T008 [P] 定义FilterConfig结构体 in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
-- [ ] T009 实现ConfigLoader.LoadFromEnv方法（环境变量加载）in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
-- [ ] T010 实现ConfigLoader.parseIPList方法（逗号分隔IP解析）in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
-- [ ] T011 实现ConfigLoader.loadRulesFromYAML方法（YAML文件加载）in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
-- [ ] T012 [P] 单元测试：测试有效IP/CIDR解析 in cmd-nse-ipfilter-vpp/internal/ipfilter/config_test.go
-- [ ] T013 [P] 单元测试：测试无效IP地址处理（跳过并记录警告）in cmd-nse-ipfilter-vpp/internal/ipfilter/config_test.go
-- [ ] T014 [P] 单元测试：测试YAML文件加载 in cmd-nse-ipfilter-vpp/internal/ipfilter/config_test.go
+- [X] T006 [P] 定义FilterMode枚举类型 in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
+- [X] T007 [P] 定义IPFilterRule结构体 in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
+- [X] T008 [P] 定义FilterConfig结构体 in cmd-nse-ipfilter-vpp/internal/ipfilter/types.go
+- [X] T009 实现ConfigLoader.LoadFromEnv方法（环境变量加载）in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
+- [X] T010 实现ConfigLoader.parseIPList方法（逗号分隔IP解析）in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
+- [X] T011 实现ConfigLoader.loadRulesFromYAML方法（YAML文件加载）in cmd-nse-ipfilter-vpp/internal/ipfilter/config.go
+- [X] T012 [P] 单元测试：测试有效IP/CIDR解析 in cmd-nse-ipfilter-vpp/internal/ipfilter/config_test.go
+- [X] T013 [P] 单元测试：测试无效IP地址处理（跳过并记录警告）in cmd-nse-ipfilter-vpp/internal/ipfilter/config_test.go
+- [X] T014 [P] 单元测试：测试YAML文件加载 in cmd-nse-ipfilter-vpp/internal/ipfilter/config_test.go
 
 ### 规则匹配引擎
 
-- [ ] T015 定义RuleMatcher结构体（使用atomic.Value存储配置）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T016 实现NewRuleMatcher构造函数 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T017 实现RuleMatcher.IsAllowed方法（核心匹配逻辑：黑名单优先→白名单→默认策略）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T018 实现RuleMatcher.Reload方法（原子替换配置）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T019 实现RuleMatcher.GetStats方法（可选，统计信息）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
-- [ ] T020 [P] 单元测试：测试空白名单默认拒绝 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
-- [ ] T021 [P] 单元测试：测试空黑名单默认允许 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
-- [ ] T022 [P] 单元测试：测试黑名单优先（IP同时在两个列表）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
-- [ ] T023 [P] 单元测试：测试IPv4和IPv6地址 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
-- [ ] T024 [P] 单元测试：测试CIDR网段匹配 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
-- [ ] T025 [P] 性能基准测试：10,000规则下查询性能<10ms in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
+- [X] T015 定义RuleMatcher结构体（使用atomic.Value存储配置）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T016 实现NewRuleMatcher构造函数 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T017 实现RuleMatcher.IsAllowed方法（核心匹配逻辑：黑名单优先→白名单→默认策略）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T018 实现RuleMatcher.Reload方法（原子替换配置）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T019 实现RuleMatcher.GetStats方法（可选，统计信息）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher.go
+- [X] T020 [P] 单元测试：测试空白名单默认拒绝 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
+- [X] T021 [P] 单元测试：测试空黑名单默认允许 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
+- [X] T022 [P] 单元测试：测试黑名单优先（IP同时在两个列表）in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
+- [X] T023 [P] 单元测试：测试IPv4和IPv6地址 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
+- [X] T024 [P] 单元测试：测试CIDR网段匹配 in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
+- [X] T025 [P] 性能基准测试：10,000规则下查询性能<10ms in cmd-nse-ipfilter-vpp/internal/ipfilter/matcher_test.go
 
 **Checkpoint**: 配置加载和规则匹配引擎完成，所有单元测试通过，性能基准测试达标。
 
