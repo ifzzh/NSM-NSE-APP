@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nse-ipfilter-vpp
+  labels:
+    app: nse-ipfilter-vpp
+spec:
+  selector:
+    matchLabels:
+      app: nse-ipfilter-vpp
+  template:
+    metadata:
+      labels:
+        app: nse-ipfilter-vpp
+        "spiffe.io/spiffe-id": "true"
+    spec:
+      containers:
+        - name: nse
+          image: ifzzh/cmd-nse-ipfilter-vpp:v1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPIFFE_ENDPOINT_SOCKET
+              value: unix:///run/spire/sockets/agent.sock
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NSM_NAME
+              value: "$(POD_NAME)"
+            - name: NSM_SERVICE_NAME
+              value: "ipfilter-service"
+            - name: NSM_LOG_LEVEL
+              value: INFO
+            - name: NSM_CONNECT_TO
+              value: unix:///var/lib/networkservicemesh/nsm.io.sock
+            - name: NSM_IPFILTER_MODE
+              value: "whitelist"
+            - name: NSM_IPFILTER_WHITELIST
+              value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          volumeMounts:
+            - name: spire-agent-socket
+              mountPath: /run/spire/sockets
+              readOnly: true
+            - name: nsm-socket
+              mountPath: /var/lib/networkservicemesh
+              readOnly: true
+      volumes:
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/sockets
+            type: Directory
+        - name: nsm-socket
+          hostPath:
+            path: /var/lib/networkservicemesh
+            type: DirectoryOrCreate

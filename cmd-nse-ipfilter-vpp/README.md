@@ -180,10 +180,25 @@ Apache License 2.0 - 详见 [LICENSE](LICENSE)
 
 ## 🔗 相关链接
 
+- [测试指南](../samenode-ipfilter/TEST_GUIDE.md) - 完整的Kubernetes部署和测试文档
+- [任务清单](../specs/003-ipfilter-nse/tasks.md) - 开发任务和进度跟踪
 - [Network Service Mesh](https://networkservicemesh.io/)
 - [VPP (Vector Packet Processing)](https://fd.io/)
 - [SPIFFE/SPIRE](https://spiffe.io/)
 - [模板项目](../cmd-nse-firewall-vpp-refactored/)
+
+---
+
+## 📊 开发进度
+
+- ✅ Phase 0: 模板复制（完成）
+- ✅ Phase 1: 核心基础设施（配置加载+规则匹配引擎）
+- ✅ Phase 2: 白名单访问控制（MVP）
+- ✅ Phase 3: 黑名单访问控制（增量交付）
+- ⏳ Phase 4: 动态规则更新（待开发）
+- ⏳ Phase 5: 生产就绪（文档、Docker、部署清单）
+
+**测试覆盖率**: 80.3% (32个单元测试全部通过)
 
 ---
 

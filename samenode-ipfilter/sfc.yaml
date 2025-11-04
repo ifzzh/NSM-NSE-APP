@@ -1,0 +1,16 @@
+---
+apiVersion: networkservicemesh.io/v1
+kind: NetworkService
+metadata:
+  name: ipfilter-service
+spec:
+  payload: ETHERNET
+  matches:
+    - source_selector:
+        app: ipfilter
+      routes:
+        - destination_selector:
+            app: server
+    - routes:
+        - destination_selector:
+            app: ipfilter
